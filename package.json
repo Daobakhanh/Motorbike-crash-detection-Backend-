@@ -1,0 +1,29 @@
+{
+  "name": "motorbike-crash-detection-backend",
+  "version": "1.0.0",
+  "description": "Backend server includes REST Api, Firebase service, MQTT service, SMS/Calling service for project",
+  "main": "src/app.js",
+  "repository": "git@github.com:Daobakhanh/Motorbike-crash-detection-Backend-.git",
+  "author": "buiducnhat",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
+    "lint": "eslint . --ext .js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mqtt": "^4.3.7",
+    "typedi": "^0.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.29.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "nodemon": "^2.0.20",
+    "prettier": "^2.8.1"
+  }
+}
