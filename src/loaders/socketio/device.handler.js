@@ -1,20 +1,14 @@
-// eslint-disable-next-line no-unused-vars
-const { Server, Socket } = require('socket.io');
 const { Container } = require('typedi');
-
-const configs = require('../../commons/configs');
+const { DI_KEYS } = require('../../commons/constants');
+// const configs = require('../../commons/configs');
 
 /**
- * @param {Server} io
- * @param {Socket} socket
+ * @param {import('socket.io').Server} io
+ * @param {import('socket.io').Socket} socket
  */
 module.exports = (io, socket) => {
   /**
-   * @type {require('mqtt').Client}
+   * @type {import('mqtt').Client}
    */
-  const mqttClient = Container.get('mqttClient');
-
-  const update = async device => {};
-
-  socket.on('device:update', update);
+  const mqttClient = Container.get(DI_KEYS.MQTT_CLIENT);
 };

@@ -1,8 +1,7 @@
 const { Server } = require('socket.io');
 const { Container } = require('typedi');
-const jwt = require('jsonwebtoken');
 
-const configs = require('../../commons/configs');
+const { DI_KEYS } = require('../../commons/constants');
 const registerDeviceHandler = require('./device.handler');
 
 module.exports = function socketIOLoader(server) {
@@ -11,22 +10,26 @@ module.exports = function socketIOLoader(server) {
       origin: '*',
     },
   });
-  Container.set('socketio', io);
+  Container.set(DI_KEYS.SOCKETIO, io);
   console.log('Socket.io loaded');
 
   io.use((socket, next) => {
     const { accessToken } = socket.handshake.auth;
+    const fbAuth = Container.get(DI_KEYS.FB_AUTH);
+
     if (!accessToken) {
       return next(new Error('Authentication error'));
     } else {
-      jwt.verify(accessToken, configs.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          return next(new Error('Authentication error'));
-        } else {
-          socket.data.userId = decoded.userId;
+      fbAuth
+        .verifyIdToken(accessToken)
+        .then(decodedToken => {
+          socket.data.userId = decodedToken.uid;
           return next();
-        }
-      });
+        })
+        .catch(error => {
+          console.log(error);
+          return next(new Error('Authentication error'));
+        });
     }
   });
 

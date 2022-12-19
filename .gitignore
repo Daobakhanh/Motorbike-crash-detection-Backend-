@@ -233,3 +233,6 @@ $RECYCLE.BIN/
 
 # Environment variables
 .env
+
+# Google/Firebase credentials
+google-application-credentials.json

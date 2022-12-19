@@ -12,9 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 // Setup routes
-app.use('/api/authen', require('../../modules/authen/authen.controller'));
-app.use('/api/homes', require('../../modules/home/home.controller'));
-app.use('/api/devices', require('../../modules/device/device.controller'));
+app.use('/api/auth', require('../../modules/auth/auth.controller'));
 
 // Error handler
 app.use((err, req, res, next) => {

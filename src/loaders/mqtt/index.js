@@ -21,5 +21,7 @@ module.exports = function mqttLoader() {
     });
   });
 
-  mqttClient.on('message', async function (topic, message) {});
+  mqttClient.on('message', async function (topic, message) {
+    console.log('MQTT message received', topic, message.toString());
+  });
 };
