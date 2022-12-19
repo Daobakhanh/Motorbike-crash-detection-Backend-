@@ -4,9 +4,6 @@ module.exports = {
   // Server
   PORT: process.env.PORT || 8888,
 
-  // Database
-  MONOGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/expressjs',
-
   // MQTT
   MQTT_HOST: process.env.MQTT_HOST,
   MQTT_PORT: process.env.MQTT_PORT,
