@@ -12,13 +12,11 @@ const PORT = configs.PORT;
 
 async function bootstrap() {
   try {
+    firebaseLoader();
+    mqttLoader();
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
-    mqttLoader();
-
-    firebaseLoader();
-
     socketIOLoader(server);
   } catch (error) {
     console.log(error);

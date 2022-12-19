@@ -12,7 +12,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 // Setup routes
-app.use('/api/auth', require('../../modules/auth/auth.controller'));
+const mainApi = express.Router();
+mainApi.use('/auth', require('../../modules/auth/auth.controller'));
+mainApi.use('/users', require('../../modules/users/user.controller'));
+mainApi.use('/devices', require('../../modules/devices/device.controller'));
+
+app.use('/api', mainApi);
 
 // Error handler
 app.use((err, req, res, next) => {

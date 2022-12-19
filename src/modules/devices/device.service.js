@@ -112,4 +112,4 @@ class DeviceService {
   }
 }
 
-module.exports = new DeviceService();
+module.exports = DeviceService;

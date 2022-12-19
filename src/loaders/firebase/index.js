@@ -6,6 +6,7 @@ const { getAuth } = require('firebase-admin/auth');
 const { default: Container } = require('typedi');
 
 const serviceAccount = require('../../../google-application-credentials.json');
+const { DI_KEYS } = require('../../commons/constants');
 
 module.exports = function firebaseLoader() {
   const app = initializeApp({
@@ -15,17 +16,10 @@ module.exports = function firebaseLoader() {
   const storage = getStorage();
   const auth = getAuth();
 
-  Container.set('fbApp', app);
-  Container.set('fbDb', firestore);
-  Container.set('fbStorage', storage);
-  Container.set('fbAuth', auth);
-
-  const docRef = firestore.collection('users');
-  docRef.add({
-    first: 'Ada',
-    last: 'Lovelace',
-    born: 1815,
-  });
+  Container.set(DI_KEYS.FB_APP, app);
+  Container.set(DI_KEYS.FB_DB, firestore);
+  Container.set(DI_KEYS.FB_STORAGE, storage);
+  Container.set(DI_KEYS.FB_AUTH, auth);
 
   console.log('Firebase initialized');
 };
