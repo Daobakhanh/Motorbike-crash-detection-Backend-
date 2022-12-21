@@ -18,7 +18,9 @@ class DeviceService {
    */
   async createOriginDevice(input) {
     try {
-      const device = await (await this.deviceCollection.add(input)).get();
+      await this.deviceCollection.doc(input.id).set(input);
+
+      const device = await this.deviceCollection.doc(input.id).get();
 
       return {
         id: device.id,

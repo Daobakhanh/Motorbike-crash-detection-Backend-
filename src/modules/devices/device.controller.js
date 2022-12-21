@@ -4,7 +4,7 @@ const DeviceService = require('./device.service');
 
 const deviceController = require('express').Router();
 
-deviceController.post('/', authMiddleware, async (req, res, next) => {
+deviceController.post('/', async (req, res, next) => {
   try {
     const deviceService = new DeviceService();
     const result = await deviceService.createOriginDevice(req.body);
