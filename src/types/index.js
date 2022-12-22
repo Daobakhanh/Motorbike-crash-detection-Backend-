@@ -29,6 +29,7 @@
 /**
  * @typedef {Object} DeviceConfig
  * @property {boolean} antiTheftStatus
+ * @property {boolean} fallDetectionStatus
  * @property {boolean} crashDetectionStatus
  */
 
