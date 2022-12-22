@@ -81,6 +81,11 @@ class DeviceService {
    */
   async update(deviceId, data) {
     try {
+      delete data?.userId;
+      delete data?.id;
+      delete data?.verificationCode;
+      delete data?.createdAt;
+
       await this.deviceCollection.doc(deviceId).update(data);
 
       const device = await this.deviceCollection.doc(deviceId).get();
