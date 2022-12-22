@@ -22,7 +22,7 @@ module.exports = function authMiddleware(req, res, next) {
    * @type {import('firebase-admin').auth.Auth}
    */
   const fbAuth = Container.get(DI_KEYS.FB_AUTH);
-  fbAuth.fbAuth
+  fbAuth
     .verifyIdToken(token)
     .then(decodedToken => {
       req.userId = decodedToken.uid;
