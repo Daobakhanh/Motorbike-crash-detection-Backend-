@@ -40,16 +40,26 @@ class AuthService {
     try {
       const userDoc = await this.userCollection.doc(userId).get();
       const userData = userDoc.data();
-      const user = {
-        id: userDoc.id,
-        ...userData,
-        lastSignInAt: new Date(),
-      };
 
       const fcmTokens = userData.fcmTokens || [];
       if (!fcmTokens.includes(fcmToken)) {
         fcmTokens.push(fcmToken);
       }
+
+      await this.userCollection.doc(userId).update({
+        fcmTokens,
+        lastSignInAt: new Date(),
+      });
+
+      /**
+       * @type {User}
+       */
+      const user = {
+        id: userDoc.id,
+        ...userData,
+        fcmTokens,
+        lastSignInAt: new Date(),
+      };
 
       return user;
     } catch (error) {
