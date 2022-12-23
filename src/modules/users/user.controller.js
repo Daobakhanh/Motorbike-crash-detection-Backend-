@@ -6,9 +6,7 @@ const userController = require('express').Router();
 
 userController.get('/me', authMiddleware, async (req, res, next) => {
   try {
-    const userService = new UserService();
-    const result = await userService.getUserInfo(req.userId);
-    return res.json(apiResult('Get user information successfully', result));
+    return res.json(apiResult('Get user information successfully', req.user));
   } catch (error) {
     next(error);
   }
@@ -17,7 +15,7 @@ userController.get('/me', authMiddleware, async (req, res, next) => {
 userController.put('/me', authMiddleware, async (req, res, next) => {
   try {
     const userService = new UserService();
-    const result = await userService.updateUserInfo(req.userId, req.body);
+    const result = await userService.updateUserInfo(req.user.id, req.body);
     return res.json(apiResult('Update user information successfully', result));
   } catch (error) {
     next(error);

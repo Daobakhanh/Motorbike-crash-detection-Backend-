@@ -1,7 +1,9 @@
 const { default: Container } = require('typedi');
+const jwt = require('jsonwebtoken');
 
 require('../../types');
 const { DI_KEYS } = require('../../commons/constants');
+const configs = require('../../commons/configs');
 
 class AuthService {
   constructor() {
@@ -21,11 +23,16 @@ class AuthService {
     try {
       await this.userCollection.doc(userId).set(data);
 
-      return {
+      const user = {
         id: userId,
         ...data,
         fcmTokens: data.fcmTokens || [],
         lastSignInAt: new Date(),
+      };
+
+      return {
+        accessToken: this.generateJwt(user),
+        user,
       };
     } catch (error) {
       console.log(error);
@@ -34,9 +41,8 @@ class AuthService {
 
   /**
    * @param {string} userId
-   * @param {string} fcmToken
    */
-  async signin(userId, fcmToken) {
+  async signin(userId, { fcmToken }) {
     try {
       const userDoc = await this.userCollection.doc(userId).get();
       const userData = userDoc.data();
@@ -61,7 +67,10 @@ class AuthService {
         lastSignInAt: new Date(),
       };
 
-      return user;
+      return {
+        accessToken: this.generateJwt(user),
+        user,
+      };
     } catch (error) {
       console.log(error);
     }
@@ -69,9 +78,8 @@ class AuthService {
 
   /**
    * @param {string} userId
-   * @param {string} fcmToken
    */
-  async signout(userId, fcmToken) {
+  async signout(userId, { fcmToken }) {
     try {
       const userDoc = await this.userCollection.doc(userId).get();
       const userData = userDoc.data();
@@ -93,6 +101,23 @@ class AuthService {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  /**
+   *
+   * @param {User} user
+   * @returns {string}
+   * @private
+   */
+  generateJwt(user) {
+    const payload = {
+      user,
+    };
+    const token = jwt.sign(payload, configs.JWT_SECRET_KEY, {
+      expiresIn: configs.JWT_EXPIRATION_TIME,
+      algorithm: configs.JWT_ALGORITHM,
+    });
+    return token;
   }
 }
 

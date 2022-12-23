@@ -7,7 +7,6 @@
  * @property {string} avatarUrl
  * @property {Date} dateOfBirth
  * @property {string} citizenNumber
- * @property {string} token
  * @property {string[]} sosNumbers
  * @property {Date} lastSignInAt
  * @property {string[]} fcmTokens

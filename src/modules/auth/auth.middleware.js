@@ -1,5 +1,8 @@
-const { default: Container } = require('typedi');
-const { MESSAGES, DI_KEYS } = require('../../commons/constants');
+const jwt = require('jsonwebtoken');
+
+const { MESSAGES } = require('../../commons/constants');
+const configs = require('../../commons/configs');
+const UserService = require('../users/user.service');
 
 /**
  * @param {import("express").Request} req
@@ -10,25 +13,25 @@ const { MESSAGES, DI_KEYS } = require('../../commons/constants');
 module.exports = function authMiddleware(req, res, next) {
   const bearerToken = req.headers.authorization;
   if (!bearerToken) {
-    return next(new Error(MESSAGES.AUTHENTICATION_REQUIRED));
+    return next(new Error(MESSAGES.UNAUTHORIZED));
   }
 
   const token = bearerToken.split(' ')[1];
   if (!token) {
-    return next(new Error(MESSAGES.AUTHENTICATION_REQUIRED));
+    return next(new Error(MESSAGES.UNAUTHORIZED));
   }
 
-  /**
-   * @type {import('firebase-admin').auth.Auth}
-   */
-  const fbAuth = Container.get(DI_KEYS.FB_AUTH);
-  fbAuth
-    .verifyIdToken(token)
-    .then(decodedToken => {
-      req.userId = decodedToken.uid;
-      next();
-    })
-    .catch(error => {
-      next(error);
-    });
+  jwt.verify(token, configs.JWT_SECRET_KEY, async (err, decoded) => {
+    if (err) {
+      return next(new Error(MESSAGES.UNAUTHORIZED));
+    }
+
+    const { user } = decoded;
+    if (!user?.id) {
+      return next(new Error(MESSAGES.UNAUTHORIZED));
+    }
+
+    req.user = user;
+    next();
+  });
 };

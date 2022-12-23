@@ -15,4 +15,9 @@ module.exports = {
   TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
   TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
   TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
+
+  // JWT
+  JWT_SECRET_KEY: process.env.JWT_SECRET_KEY,
+  JWT_ALGORITHM: process.env.JWT_ALGORITHM || 'HS256',
+  JWT_EXPIRATION_TIME: process.env.JWT_EXPIRES_IN || '30d',
 };

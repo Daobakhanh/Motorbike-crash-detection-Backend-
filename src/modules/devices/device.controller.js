@@ -17,7 +17,7 @@ deviceController.post('/', async (req, res, next) => {
 deviceController.get('/', authMiddleware, async (req, res, next) => {
   try {
     const deviceService = new DeviceService();
-    const result = await deviceService.getDevicesOfUser(req.userId);
+    const result = await deviceService.getDevicesOfUser(req.user.id);
     return res.json(apiResult('Get devices successfully', result));
   } catch (error) {
     next(error);
@@ -27,7 +27,7 @@ deviceController.get('/', authMiddleware, async (req, res, next) => {
 deviceController.post('/link', authMiddleware, async (req, res, next) => {
   try {
     const deviceService = new DeviceService();
-    const result = await deviceService.link({ userId: req.userId, ...req.body });
+    const result = await deviceService.link({ userId: req.user.id, ...req.body });
 
     return res.json(apiResult('Link device successfully', result));
   } catch (error) {
@@ -38,7 +38,7 @@ deviceController.post('/link', authMiddleware, async (req, res, next) => {
 deviceController.put('/:deviceId', authMiddleware, async (req, res, next) => {
   try {
     const deviceService = new DeviceService();
-    const isOwner = await deviceService.checkDeviceOfUser(req.userId, req.params.deviceId);
+    const isOwner = await deviceService.checkDeviceOfUser(req.user.id, req.params.deviceId);
     if (!isOwner) {
       return res.status(403).json(apiResult('You are not the owner of this device'));
     }
