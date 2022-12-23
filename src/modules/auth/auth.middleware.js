@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const { MESSAGES } = require('../../commons/constants');
 const configs = require('../../commons/configs');
-const UserService = require('../users/user.service');
 
 /**
  * @param {import("express").Request} req
