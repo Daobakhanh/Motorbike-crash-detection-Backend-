@@ -27,7 +27,7 @@
 
 /**
  * @typedef {Object} DeviceConfig
- * @property {boolean} antiTheftStatus
+ * @property {boolean} antiTheft
  */
 
 /**

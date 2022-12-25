@@ -18,7 +18,7 @@ class DeviceService {
    */
   async createOriginDevice(input) {
     try {
-      await this.deviceCollection.doc(input.id).set(input);
+      await this.deviceCollection.doc(input.id).set({ ...input, createdAt: new Date() });
 
       const device = await this.deviceCollection.doc(input.id).get();
 
@@ -42,7 +42,37 @@ class DeviceService {
       return devices.docs.map(device => ({
         id: device.id,
         ...device.data(),
+        locations:
+          device.data()?.locations?.map(location => ({
+            ...location,
+            createdAt: location.createdAt.toDate(),
+          })) || [],
       }));
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  /**
+   * @param {string} userId
+   * @param {string} deviceId
+   * @returns {Promise<Device[]>}
+   */
+  async getDeviceOfUser(userId, deviceId) {
+    try {
+      const device = await this.deviceCollection.doc(deviceId).get();
+      if (!device.exists || device.data().userId !== userId) {
+        return null;
+      }
+
+      return {
+        id: device.id,
+        ...device.data(),
+        locations: device.data().locations.map(location => ({
+          ...location,
+          createdAt: location.createdAt.toDate(),
+        })),
+      };
     } catch (error) {
       console.log(error);
     }

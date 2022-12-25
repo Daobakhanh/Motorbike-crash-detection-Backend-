@@ -24,6 +24,16 @@ deviceController.get('/', authMiddleware, async (req, res, next) => {
   }
 });
 
+deviceController.get('/:deviceId', authMiddleware, async (req, res, next) => {
+  try {
+    const deviceService = new DeviceService();
+    const result = await deviceService.getDeviceOfUser(req.user.id, req.params.deviceId);
+    return res.json(apiResult('Get device successfully', result));
+  } catch (error) {
+    next(error);
+  }
+});
+
 deviceController.post('/link', authMiddleware, async (req, res, next) => {
   try {
     const deviceService = new DeviceService();
