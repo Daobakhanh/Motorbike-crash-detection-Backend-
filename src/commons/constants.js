@@ -18,4 +18,13 @@ const DI_KEYS = {
   SOCKETIO: 'socketio',
 };
 
-module.exports = { MESSAGES, DI_KEYS };
+const DeviceStatus = {
+  NONE: Symbol(0),
+  FALL: Symbol(1),
+  CRASH: Symbol(2),
+  LOST1: Symbol(3),
+  LOST2: Symbol(4),
+  SOS: Symbol(5),
+};
+
+module.exports = { MESSAGES, DI_KEYS, DeviceStatus };

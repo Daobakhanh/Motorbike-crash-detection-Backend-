@@ -117,6 +117,43 @@ class DeviceService {
       console.log(error);
     }
   }
+
+  /**
+   * @param {ReceivedLocationData} input
+   * @returns
+   */
+  async handleReceivedLocation(input) {
+    try {
+      const device = await this.deviceCollection.doc(input.deviceId).get();
+
+      if (!device.exists) {
+        throw new Error('Device not found');
+      }
+
+      const deviceData = device.data();
+      if (!deviceData.locations || !Array.isArray(deviceData.locations)) {
+        deviceData.locations = [];
+      }
+      deviceData.locations.push({
+        latitude: input.location[0],
+        longitude: input.location[1],
+        createdAt: new Date(),
+      });
+      deviceData.config.antiTheft = input.toggleAntiTheft;
+      deviceData.status = input.status;
+
+      await this.deviceCollection.doc(input.deviceId).update({
+        ...deviceData,
+      });
+
+      return {
+        id: device.id,
+        ...deviceData,
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 
 module.exports = DeviceService;

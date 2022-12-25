@@ -28,8 +28,6 @@
 /**
  * @typedef {Object} DeviceConfig
  * @property {boolean} antiTheftStatus
- * @property {boolean} fallDetectionStatus
- * @property {boolean} crashDetectionStatus
  */
 
 /**
@@ -40,6 +38,7 @@
  * @property {string} userId
  * @property {Vehicle} vehicle
  * @property {DeviceConfig} config
+ * @property {DeviceStatus} status
  * @property {Date} createdAt
  */
 
@@ -53,4 +52,22 @@
  * @property {string} photoUrl
  * @property {string} deviceId
  * @property {Date} createdAt
+ */
+
+/**
+ * @typedef {Enumerator} DeviceStatus
+ * @property {number} NONE - 0
+ * @property {number} FALL - 1
+ * @property {number} CRASH - 2
+ * @property {number} LOST1 - 3
+ * @property {number} LOST2 - 4
+ * @property {number} SOS - 5
+ */
+
+/**
+ * @typedef {Object} ReceivedLocationData
+ * @property {string} deviceId
+ * @property {number[]} location
+ * @property {DeviceStatus} status
+ * @property {boolean} toggleAntiTheft
  */

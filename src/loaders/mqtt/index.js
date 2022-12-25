@@ -2,6 +2,7 @@ const mqtt = require('mqtt');
 const { Container } = require('typedi');
 
 const configs = require('../../commons/configs');
+const DeviceService = require('../../modules/devices/device.service');
 
 module.exports = function mqttLoader() {
   const mqttClient = mqtt.connect(configs.MQTT_HOST, {
@@ -14,7 +15,7 @@ module.exports = function mqttLoader() {
   mqttClient.on('connect', function () {
     console.log('MQTT connected');
 
-    mqttClient.subscribe(`${configs.MQTT_TOPIC_PREFIX}/measurements`, function (err) {
+    mqttClient.subscribe(`${configs.MQTT_TOPIC_PREFIX}/location`, function (err) {
       if (err) {
         console.log(err);
       }
@@ -22,6 +23,16 @@ module.exports = function mqttLoader() {
   });
 
   mqttClient.on('message', async function (topic, message) {
-    console.log('MQTT message received', topic, message.toString());
+    if (topic === `${configs.MQTT_TOPIC_PREFIX}/location`) {
+      /**
+       * @type {ReceivedLocationData}
+       */
+      const receivedData = JSON.parse(message.toString());
+
+      const deviceService = new DeviceService();
+      const device = await deviceService.handleReceivedLocation(receivedData);
+
+      // TODO: Handle socketio
+    }
   });
 };
