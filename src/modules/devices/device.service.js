@@ -42,11 +42,6 @@ class DeviceService {
       return devices.docs.map(device => ({
         id: device.id,
         ...device.data(),
-        locations:
-          device.data()?.locations?.map(location => ({
-            ...location,
-            createdAt: location.createdAt.toDate(),
-          })) || [],
       }));
     } catch (error) {
       console.log(error);
@@ -68,10 +63,6 @@ class DeviceService {
       return {
         id: device.id,
         ...device.data(),
-        locations: device.data().locations.map(location => ({
-          ...location,
-          createdAt: location.createdAt.toDate(),
-        })),
       };
     } catch (error) {
       console.log(error);
