@@ -1,7 +1,9 @@
 const { default: Container } = require('typedi');
+const configs = require('../../commons/configs');
+const { makeCall, sendSMS } = require('../twilio');
 
 require('../../types');
-const { DI_KEYS } = require('../../commons/constants');
+const { DI_KEYS, DeviceStatus } = require('../../commons/constants');
 
 class DeviceService {
   constructor() {
@@ -163,9 +165,66 @@ class DeviceService {
       deviceData.config.antiTheft = input.toggleAntiTheft;
       deviceData.status = input.status;
 
+      if (!deviceData.properties) {
+        deviceData.properties = {};
+      }
+
+      // if (
+      //   deviceData.status === DeviceStatus.SOS &&
+      //   deviceData.properties.lastCall < new Date() - 1000 * 2 &&
+      //   deviceData.properties.lastSms < new Date() - 1000 * 2
+      // ) {
+      //   deviceData.properties.lastCall = new Date();
+      //   deviceData.properties.lastSms = new Date();
+
+      //   makeCall('+84357698570');
+      //   sendSMS('+84357698570', 'SOS SOS');
+      // }
+
       await this.deviceCollection.doc(input.deviceId).update({
         ...deviceData,
       });
+
+      return {
+        id: device.id,
+        ...deviceData,
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async sendConfigToDevice(deviceId, config) {
+    try {
+      const device = await this.deviceCollection.doc(deviceId).get();
+
+      if (!device.exists) {
+        return null;
+      }
+
+      const deviceData = device.data();
+
+      await this.deviceCollection.doc(deviceId).update({
+        ...deviceData,
+        config: {
+          ...deviceData.config,
+          toggleAntiTheft: config.toggleAntiTheft,
+        },
+      });
+
+      /**
+       * @type {import('mqtt').Client}
+       */
+      const mqttClient = Container.get(DI_KEYS.MQTT_CLIENT);
+      mqttClient.publish(
+        `${configs.MQTT_TOPIC_PREFIX}/update`,
+        JSON.stringify({
+          deviceId: device.id,
+          needUpdateLocation: config.needUpdateLocation,
+          toggleAntiTheft: config.toggleAntiTheft,
+          offWarning: config.offWarning,
+        }),
+      );
 
       return {
         id: device.id,

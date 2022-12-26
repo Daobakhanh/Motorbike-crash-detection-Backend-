@@ -61,4 +61,15 @@ deviceController.put('/:deviceId', authMiddleware, async (req, res, next) => {
   }
 });
 
+deviceController.post('/request/:deviceId', async (req, res, next) => {
+  try {
+    const deviceService = new DeviceService();
+    const result = await deviceService.sendConfigToDevice(req.params.deviceId, req.body);
+
+    return res.json(apiResult('Update device successfully', result));
+  } catch (error) {
+    next(error);
+  }
+})
+
 module.exports = deviceController;
