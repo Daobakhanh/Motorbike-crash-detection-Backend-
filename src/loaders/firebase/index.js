@@ -11,6 +11,7 @@ const { DI_KEYS } = require('../../commons/constants');
 module.exports = function firebaseLoader() {
   const app = initializeApp({
     credential: credential.cert(serviceAccount),
+    storageBucket: 'gs://motorbike-crash-detection.appspot.com',
   });
   const firestore = getFirestore();
   const storage = getStorage();

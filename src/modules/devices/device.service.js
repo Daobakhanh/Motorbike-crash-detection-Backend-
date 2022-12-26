@@ -148,7 +148,7 @@ class DeviceService {
       const device = await this.deviceCollection.doc(input.deviceId).get();
 
       if (!device.exists) {
-        throw new Error('Device not found');
+        return null;
       }
 
       const deviceData = device.data();

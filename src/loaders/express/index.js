@@ -13,6 +13,7 @@ app.use(cors());
 
 // Setup routes
 const mainApi = express.Router();
+mainApi.use('/app', require('../../modules/app/app.controller'));
 mainApi.use('/auth', require('../../modules/auth/auth.controller'));
 mainApi.use('/users', require('../../modules/users/user.controller'));
 mainApi.use('/devices', require('../../modules/devices/device.controller'));
@@ -21,6 +22,8 @@ app.use('/api', mainApi);
 
 // Error handler
 app.use((err, req, res, next) => {
+  console.log(err);
+
   if (err.message === MESSAGES.BAD_REQUEST) {
     return res.status(400).json(apiResult(err.message));
   } else if (err.message === MESSAGES.UNAUTHORIZED) {
@@ -29,7 +32,7 @@ app.use((err, req, res, next) => {
     return res.status(404).json(apiResult(err.message));
   }
 
-  res.status(500).json(apiResult(MESSAGES.INTERNAL_SERVER_ERROR));
+  res.status(500).json(apiResult(err.message || MESSAGES.INTERNAL_SERVER_ERROR));
 
   return next();
 });
