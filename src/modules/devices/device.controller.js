@@ -70,6 +70,6 @@ deviceController.post('/request/:deviceId', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-})
+});
 
 module.exports = deviceController;

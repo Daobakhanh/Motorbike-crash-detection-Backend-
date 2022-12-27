@@ -37,6 +37,8 @@ class UserService {
   async updateUserInfo(userId, data) {
     try {
       await this.userCollection.doc(userId).update(data);
+
+      return this.getUserInfo(userId);
     } catch (error) {
       console.log(error);
     }
