@@ -169,16 +169,16 @@ class DeviceService {
         deviceData.properties = {};
       }
 
-      if (
-        deviceData.status === DeviceStatus.SOS &&
-        deviceData.properties.lastCall.toDate() < new Date().getTime() - 1000 * 60 * 2 &&
-        deviceData.properties.lastCall.toDate() < new Date() - 1000 * 60 * 2
-      ) {
-        await makeCall('+84357698570');
-        // await sendSMS('+84357698570', 'SOS SOS');
-        deviceData.properties.lastCall = new Date();
-        deviceData.properties.lastSms = new Date();
-      }
+      // if (
+      //   deviceData.status === DeviceStatus.SOS &&
+      //   deviceData.properties.lastCall.toDate() < new Date().getTime() - 1000 * 60 * 2 &&
+      //   deviceData.properties.lastCall.toDate() < new Date() - 1000 * 60 * 2
+      // ) {
+      //   await makeCall('+84357698570');
+      //   // await sendSMS('+84357698570', 'SOS SOS');
+      //   deviceData.properties.lastCall = new Date();
+      //   deviceData.properties.lastSms = new Date();
+      // }
 
       await this.deviceCollection.doc(input.deviceId).update({
         ...deviceData,
