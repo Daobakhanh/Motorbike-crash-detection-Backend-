@@ -2,7 +2,8 @@ const { Server } = require('socket.io');
 const { Container } = require('typedi');
 
 const { DI_KEYS } = require('../../commons/constants');
-const registerDeviceHandler = require('./device.handler');
+const registerLocationHandler = require('./location.handler');
+const AuthService = require('../../modules/auth/auth.service');
 
 module.exports = function socketIOLoader(server) {
   const io = new Server(server, {
@@ -13,30 +14,27 @@ module.exports = function socketIOLoader(server) {
   Container.set(DI_KEYS.SOCKETIO, io);
   console.log('Socket.io loaded');
 
-  io.use((socket, next) => {
-    const { accessToken } = socket.handshake.auth;
-    const fbAuth = Container.get(DI_KEYS.FB_AUTH);
+  // io.use((socket, next) => {
+  //   const { accessToken } = socket.handshake.auth;
+  //   const authService = new AuthService();
 
-    if (!accessToken) {
-      return next(new Error('Authentication error'));
-    } else {
-      fbAuth
-        .verifyIdToken(accessToken)
-        .then(decodedToken => {
-          socket.data.userId = decodedToken.uid;
-          return next();
-        })
-        .catch(error => {
-          console.log(error);
-          return next(new Error('Authentication error'));
-        });
-    }
-  });
+  //   if (!accessToken) {
+  //     return next(new Error('Authentication error'));
+  //   } else {
+  //     const user = authService.verifyAccessToken(accessToken);
+  //     if (!user) {
+  //       return next(new Error('Authentication error'));
+  //     } else {
+  //       socket.user = user;
+  //       return next();
+  //     }
+  //   }
+  // });
 
   io.on('connection', function (socket) {
     console.log('A new Socket.io client connected');
 
-    registerDeviceHandler(io, socket);
+    registerLocationHandler(io, socket);
   });
 
   io.on('error', function (error) {

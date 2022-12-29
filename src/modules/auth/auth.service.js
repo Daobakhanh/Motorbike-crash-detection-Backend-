@@ -1,7 +1,9 @@
 const { default: Container } = require('typedi');
 const jwt = require('jsonwebtoken');
+const { promisify } = require('util');
 
-require('../../types');
+const jwtVerify = promisify(jwt.verify);
+
 const { DI_KEYS } = require('../../commons/constants');
 const configs = require('../../commons/configs');
 
@@ -118,6 +120,21 @@ class AuthService {
       algorithm: configs.JWT_ALGORITHM,
     });
     return token;
+  }
+
+  /**
+   * @param {string} token
+   * @returns {User | null}
+   */
+  async verifyAccessToken(token) {
+    try {
+      const decoded = await jwtVerify(token, configs.JWT_SECRET_KEY);
+
+      return decoded.user;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 }
 
