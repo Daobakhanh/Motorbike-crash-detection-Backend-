@@ -171,14 +171,13 @@ class DeviceService {
 
       // if (
       //   deviceData.status === DeviceStatus.SOS &&
-      //   deviceData.properties.lastCall < new Date() - 1000 * 2 &&
-      //   deviceData.properties.lastSms < new Date() - 1000 * 2
+      //   deviceData.properties.lastCall.toDate() < new Date().getTime() - 1000 * 60 * 2 &&
+      //   deviceData.properties.lastCall.toDate() < new Date() - 1000 * 60 * 2
       // ) {
+      //   await makeCall('+84357698570');
+      //   // await sendSMS('+84357698570', 'SOS SOS');
       //   deviceData.properties.lastCall = new Date();
       //   deviceData.properties.lastSms = new Date();
-
-      //   makeCall('+84357698570');
-      //   sendSMS('+84357698570', 'SOS SOS');
       // }
 
       await this.deviceCollection.doc(input.deviceId).update({
@@ -194,7 +193,7 @@ class DeviceService {
     }
   }
 
-  async sendConfigToDevice(deviceId, config) {
+  async requestToDevice(deviceId, config) {
     try {
       const device = await this.deviceCollection.doc(deviceId).get();
 
@@ -208,7 +207,7 @@ class DeviceService {
         ...deviceData,
         config: {
           ...deviceData.config,
-          toggleAntiTheft: config.toggleAntiTheft,
+          antiTheft: config.toggleAntiTheft || deviceData.config?.antiTheft,
         },
       });
 
@@ -216,15 +215,17 @@ class DeviceService {
        * @type {import('mqtt').Client}
        */
       const mqttClient = Container.get(DI_KEYS.MQTT_CLIENT);
-      mqttClient.publish(
-        `${configs.MQTT_TOPIC_PREFIX}/update`,
-        JSON.stringify({
-          deviceId: device.id,
-          needUpdateLocation: config.needUpdateLocation,
-          toggleAntiTheft: config.toggleAntiTheft,
-          offWarning: config.offWarning,
-        }),
-      );
+      const dataToSend = {};
+      if (config.needUpdateLocation !== undefined) {
+        dataToSend.needUpdateLocation = config.needUpdateLocation;
+      }
+      if (config.toggleAntiTheft !== undefined) {
+        dataToSend.toggleAntiTheft = config.toggleAntiTheft;
+      }
+      if (config.offWarning !== undefined) {
+        dataToSend.offWarning = config.offWarning;
+      }
+      mqttClient.publish(`${configs.MQTT_TOPIC_PREFIX}/update`, JSON.stringify(dataToSend));
 
       return {
         id: device.id,
