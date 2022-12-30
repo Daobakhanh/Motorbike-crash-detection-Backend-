@@ -143,7 +143,7 @@ class DeviceService {
 
   /**
    * @param {ReceivedLocationData} input
-   * @returns
+   * @returns {Device | null}
    */
   async handleReceivedLocation(input) {
     try {
@@ -193,6 +193,12 @@ class DeviceService {
     }
   }
 
+  /**
+   *
+   * @param {string} deviceId
+   * @param {Object} config
+   * @returns
+   */
   async requestToDevice(deviceId, config) {
     try {
       const device = await this.deviceCollection.doc(deviceId).get();

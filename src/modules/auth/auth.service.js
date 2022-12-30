@@ -132,7 +132,6 @@ class AuthService {
 
       return decoded.user;
     } catch (error) {
-      console.log(error);
       return null;
     }
   }
