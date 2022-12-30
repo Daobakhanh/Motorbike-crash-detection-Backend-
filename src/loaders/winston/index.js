@@ -29,7 +29,7 @@ if (config.APP_RUN_MODE === AppRunMode.PROD) {
 }
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: config.LOG_LEVEL || 'info',
   levels: winston.config.npm.levels,
   format: winston.format.combine(
     winston.format.timestamp({
