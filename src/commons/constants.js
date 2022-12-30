@@ -27,4 +27,9 @@ const DeviceStatus = {
   SOS: Symbol(5),
 };
 
-module.exports = { MESSAGES, DI_KEYS, DeviceStatus };
+const AppRunMode = {
+  DEV: 'DEV',
+  PROD: 'PROD',
+};
+
+module.exports = { MESSAGES, DI_KEYS, DeviceStatus, AppRunMode };

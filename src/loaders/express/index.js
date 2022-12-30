@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const { MESSAGES } = require('../../commons/constants');
 const apiResult = require('../../helpers/api-result.helper');
+const logger = require('../winston');
 
 const app = express();
 
@@ -22,7 +23,7 @@ app.use('/api', mainApi);
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.log(err);
+  logger.error(err);
 
   if (err.message === MESSAGES.BAD_REQUEST) {
     return res.status(400).json(apiResult(err.message));

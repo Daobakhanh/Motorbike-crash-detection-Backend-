@@ -1,5 +1,6 @@
 const { default: Container } = require('typedi');
 const { MESSAGES, DI_KEYS } = require('../../commons/constants');
+const logger = require('../../loaders/winston');
 
 /**
  * @param {import("express").Request} req
@@ -30,7 +31,7 @@ module.exports = function fbAuthMiddleware(req, res, next) {
       next();
     })
     .catch(error => {
-      console.log(error);
+      logger.error('[fbAuthMiddleware] error', error);
       next(new Error(MESSAGES.UNAUTHORIZED));
     });
 };

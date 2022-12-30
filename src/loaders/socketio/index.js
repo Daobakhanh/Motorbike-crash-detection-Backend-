@@ -3,6 +3,7 @@ const { Container } = require('typedi');
 
 const { DI_KEYS } = require('../../commons/constants');
 const AuthService = require('../../modules/auth/auth.service');
+const logger = require('../winston');
 const registerLocationHandler = require('./location.handler');
 
 module.exports = function socketIOLoader(server) {
@@ -12,7 +13,7 @@ module.exports = function socketIOLoader(server) {
     },
   });
   Container.set(DI_KEYS.SOCKETIO, io);
-  console.log('Socket.io loaded');
+  logger.info('Socket.io loaded');
 
   io.use(async (socket, next) => {
     const { accessToken } = socket.handshake.query;
@@ -32,7 +33,7 @@ module.exports = function socketIOLoader(server) {
   });
 
   io.on('connection', function (socket) {
-    console.log('A new Socket.io client connected');
+    logger.info('Socket.io connected');
 
     socket.join(socket.user.id);
 
@@ -40,6 +41,6 @@ module.exports = function socketIOLoader(server) {
   });
 
   io.on('error', function (error) {
-    console.log(error);
+    logger.error('Socket.io error', error);
   });
 };

@@ -4,6 +4,7 @@ const { Container } = require('typedi');
 const configs = require('../../commons/configs');
 const { DI_KEYS } = require('../../commons/constants');
 const DeviceService = require('../../modules/devices/device.service');
+const logger = require('../winston');
 
 module.exports = function mqttLoader() {
   const mqttClient = mqtt.connect(configs.MQTT_HOST, {
@@ -14,11 +15,11 @@ module.exports = function mqttLoader() {
   Container.set('mqttClient', mqttClient);
 
   mqttClient.on('connect', function () {
-    console.log('MQTT connected');
+    logger.info('MQTT connected');
 
     mqttClient.subscribe(`${configs.MQTT_TOPIC_PREFIX}/location`, function (err) {
       if (err) {
-        console.log(err);
+        logger.error('MQTT subscribe error', err);
       }
     });
   });

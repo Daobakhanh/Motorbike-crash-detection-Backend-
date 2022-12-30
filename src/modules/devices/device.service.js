@@ -4,6 +4,7 @@ const { makeCall, sendSMS } = require('../twilio');
 
 require('../../types');
 const { DI_KEYS, DeviceStatus } = require('../../commons/constants');
+const logger = require('../../loaders/winston');
 
 class DeviceService {
   constructor() {
@@ -29,7 +30,7 @@ class DeviceService {
         ...device.data(),
       };
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][createOriginDevice] error', error);
     }
   }
 
@@ -46,7 +47,7 @@ class DeviceService {
         ...device.data(),
       }));
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][getDevicesOfUser] error', error);
     }
   }
 
@@ -67,7 +68,7 @@ class DeviceService {
         ...device.data(),
       };
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][getDeviceOfUser] error', error);
     }
   }
 
@@ -92,7 +93,7 @@ class DeviceService {
         ...device.data(),
       };
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][link] error', error);
     }
   }
 
@@ -118,7 +119,7 @@ class DeviceService {
         ...device.data(),
       };
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][update] error', error);
     }
   }
 
@@ -137,7 +138,7 @@ class DeviceService {
 
       return true;
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][checkDeviceOfUser] error', error);
     }
   }
 
@@ -189,7 +190,7 @@ class DeviceService {
         ...deviceData,
       };
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][handleReceivedLocation] error', error);
     }
   }
 
@@ -238,7 +239,7 @@ class DeviceService {
         ...deviceData,
       };
     } catch (error) {
-      console.log(error);
+      logger.error('[DeviceService][requestToDevice] error', error);
     }
   }
 }

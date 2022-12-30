@@ -5,6 +5,7 @@ const app = require('./loaders/express');
 const mqttLoader = require('./loaders/mqtt');
 const firebaseLoader = require('./loaders/firebase');
 const socketIOLoader = require('./loaders/socketio');
+const logger = require('./loaders/winston');
 
 const server = http.createServer(app);
 
@@ -16,11 +17,11 @@ async function bootstrap() {
     mqttLoader();
 
     server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      logger.info(`Server is running on port ${PORT}`);
     });
     socketIOLoader(server);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     process.exit(1);
   }
 }

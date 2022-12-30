@@ -2,6 +2,7 @@ const { default: Container } = require('typedi');
 
 require('../../types');
 const { DI_KEYS } = require('../../commons/constants');
+const logger = require('../../loaders/winston');
 
 class UserService {
   constructor() {
@@ -25,7 +26,7 @@ class UserService {
         ...userDoc.data(),
       };
     } catch (error) {
-      console.log(error);
+      logger.error('[UserService][getUserInfo] error', error);
     }
   }
 
@@ -40,7 +41,7 @@ class UserService {
 
       return this.getUserInfo(userId);
     } catch (error) {
-      console.log(error);
+      logger.error('[UserService][updateUserInfo] error', error);
     }
   }
 }

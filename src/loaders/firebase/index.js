@@ -7,6 +7,7 @@ const { default: Container } = require('typedi');
 
 const serviceAccount = require('../../../google-application-credentials.json');
 const { DI_KEYS } = require('../../commons/constants');
+const logger = require('../winston');
 
 module.exports = function firebaseLoader() {
   const app = initializeApp({
@@ -22,5 +23,5 @@ module.exports = function firebaseLoader() {
   Container.set(DI_KEYS.FB_STORAGE, storage);
   Container.set(DI_KEYS.FB_AUTH, auth);
 
-  console.log('Firebase initialized');
+  logger.info('Firebase loaded');
 };

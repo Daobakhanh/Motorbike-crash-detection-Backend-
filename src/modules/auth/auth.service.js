@@ -6,6 +6,7 @@ const jwtVerify = promisify(jwt.verify);
 
 const { DI_KEYS } = require('../../commons/constants');
 const configs = require('../../commons/configs');
+const logger = require('../../loaders/winston');
 
 class AuthService {
   constructor() {
@@ -37,7 +38,7 @@ class AuthService {
         user,
       };
     } catch (error) {
-      console.log(error);
+      logger.error(error);
     }
   }
 
@@ -74,7 +75,7 @@ class AuthService {
         user,
       };
     } catch (error) {
-      console.log(error);
+      logger.error(error);
     }
   }
 
@@ -101,7 +102,7 @@ class AuthService {
         fcmTokens,
       };
     } catch (error) {
-      console.log(error);
+      logger.error(error);
     }
   }
 

@@ -1,8 +1,14 @@
+const { AppRunMode } = require('./constants');
+
 require('dotenv').config();
 
 module.exports = {
   // Server
   PORT: process.env.PORT || 8888,
+  APP_RUN_MODE: process.env.NODE_ENV || AppRunMode.DEV,
+
+  // Loggers
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 
   // MQTT
   MQTT_HOST: process.env.MQTT_HOST,
