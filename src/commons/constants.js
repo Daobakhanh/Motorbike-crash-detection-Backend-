@@ -19,12 +19,12 @@ const DI_KEYS = {
 };
 
 const DeviceStatus = {
-  NONE: Symbol(0),
-  FALL: Symbol(1),
-  CRASH: Symbol(2),
-  LOST1: Symbol(3),
-  LOST2: Symbol(4),
-  SOS: Symbol(5),
+  NONE: 0,
+  FALL: 1,
+  CRASH: 2,
+  LOST1: 3,
+  LOST2: 4,
+  SOS: 5,
 };
 
 const AppRunMode = {

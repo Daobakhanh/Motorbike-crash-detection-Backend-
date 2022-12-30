@@ -1,8 +1,8 @@
 const { default: Container } = require('typedi');
+const { sub, isAfter } = require('date-fns');
+
 const configs = require('../../commons/configs');
 const { makeCall, sendSMS } = require('../twilio');
-
-require('../../types');
 const { DI_KEYS, DeviceStatus } = require('../../commons/constants');
 const logger = require('../../loaders/winston');
 
@@ -166,20 +166,36 @@ class DeviceService {
       deviceData.config.antiTheft = input.toggleAntiTheft;
       deviceData.status = input.status;
 
-      if (!deviceData.properties) {
-        deviceData.properties = {};
+      if (
+        !deviceData.properties ||
+        !deviceData.properties?.lastCall ||
+        !deviceData.properties?.lastSms
+      ) {
+        deviceData.properties = {
+          lastCall: null,
+          lastSms: null,
+        };
       }
 
-      // if (
-      //   deviceData.status === DeviceStatus.SOS &&
-      //   deviceData.properties.lastCall.toDate() < new Date().getTime() - 1000 * 60 * 2 &&
-      //   deviceData.properties.lastCall.toDate() < new Date() - 1000 * 60 * 2
-      // ) {
-      //   await makeCall('+84357698570');
-      //   // await sendSMS('+84357698570', 'SOS SOS');
-      //   deviceData.properties.lastCall = new Date();
-      //   deviceData.properties.lastSms = new Date();
-      // }
+      const needToCall = isAfter(
+        sub(new Date(), {
+          minutes: 2,
+        }),
+        deviceData.properties.lastCall.toDate(),
+      );
+
+      if (
+        deviceData.status === DeviceStatus.SOS &&
+        (needToCall || !deviceData.properties?.lastCall || !deviceData.properties?.lastSms)
+      ) {
+        await makeCall('+84357698570');
+        await sendSMS('+84357698570', 'SOS SOS');
+
+        logger.info('[DeviceService][handleReceivedLocation] make call and send sms');
+
+        deviceData.properties.lastCall = new Date();
+        deviceData.properties.lastSms = new Date();
+      }
 
       await this.deviceCollection.doc(input.deviceId).update({
         ...deviceData,
