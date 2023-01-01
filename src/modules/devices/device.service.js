@@ -6,6 +6,7 @@ const { makeCall, sendSMS } = require('../twilio');
 const { DI_KEYS, DeviceStatus } = require('../../commons/constants');
 const logger = require('../../loaders/winston');
 const UserService = require('../users/user.service');
+const UserNotificationService = require('../user-notifications/user-notification.service');
 
 class DeviceService {
   constructor() {
@@ -144,89 +145,151 @@ class DeviceService {
   }
 
   /**
+   * @param {DeviceStatus} deviceStatus
+   * @returns
+   * @private
+   */
+  getActionData(deviceStatus) {
+    switch (deviceStatus) {
+      case DeviceStatus.NONE:
+        return {};
+      case DeviceStatus.FALL:
+        return {
+          title: 'Warning',
+          content: 'Your vehicle has fallen',
+          actions: ['pushNotification', 'sendSms'],
+        };
+      case DeviceStatus.CRASH:
+        return {
+          title: 'Warning',
+          content: 'Your vehicle has crashed',
+          actions: ['pushNotification', 'sendSms', 'call'],
+        };
+      case DeviceStatus.LOST1:
+        return {
+          title: 'Your vehicle may be lost',
+          content: 'Your vehicle is 10m away from previous location',
+          actions: ['pushNotification', 'sendSms'],
+        };
+      case DeviceStatus.LOST2:
+        return {
+          title: 'Your vehicle may be lost',
+          content: 'Your vehicle is 50m away from previous location',
+          actions: ['pushNotification', 'sendSms', 'call'],
+        };
+      case DeviceStatus.SOS:
+        return {
+          title: 'SOS',
+          content: 'There is an emergency situation',
+          actions: ['pushNotification', 'sendSms', 'call'],
+        };
+      default:
+        return {};
+    }
+  }
+
+  /**
    * @param {ReceivedLocationData} input
    * @returns {Device | null}
    */
   async handleReceivedLocation(input) {
     try {
-      const device = await this.deviceCollection.doc(input.deviceId).get();
+      const userService = new UserService();
+      /**
+       * @type {import ('firebase-admin').messaging.Messaging}
+       */
+      const fcm = Container.get(DI_KEYS.FB_FCM);
+      const userNotificationService = new UserNotificationService();
 
-      if (!device.exists) {
+      const doc = await this.deviceCollection.doc(input.deviceId).get();
+
+      if (!doc.exists) {
         return null;
       }
 
-      const deviceData = device.data();
-      if (!deviceData.locations || !Array.isArray(deviceData.locations)) {
-        deviceData.locations = [];
+      /**
+       * @type {Device}
+       */
+      const device = doc.data();
+      device.id = doc.id;
+
+      /**
+       * @type {User}
+       */
+      const user = await userService.getUserInfo(device.userId);
+
+      // Insert location
+      if (!device.locations || !Array.isArray(device.locations)) {
+        device.locations = [];
       }
-      deviceData.locations.push({
+      device.locations.push({
         latitude: input.location[0],
         longitude: input.location[1],
         createdAt: new Date(),
       });
-      deviceData.config.antiTheft = input.toggleAntiTheft;
-      deviceData.status = input.status;
 
-      if (
-        !deviceData.properties ||
-        !deviceData.properties?.lastCall ||
-        !deviceData.properties?.lastSms
-      ) {
-        deviceData.properties = {
-          lastCall: null,
-          lastSms: null,
-        };
+      // Update status
+      device.config.antiTheft = input.toggleAntiTheft;
+      device.status = input.status;
+
+      if (!device.properties) {
+        device.properties = {};
       }
 
-      const userService = new UserService();
-      /**
-       * @type {User}
-       */
-      const user = await userService.getUserInfo(deviceData.userId);
-
-      const needToCall = isAfter(
-        sub(new Date(), {
-          minutes: 2,
-        }),
-        deviceData.properties.lastCall.toDate(),
-      );
-
-      if (
-        deviceData.status === DeviceStatus.SOS &&
-        (needToCall || !deviceData.properties?.lastCall || !deviceData.properties?.lastSms)
-      ) {
-        makeCall(user.phoneNumber);
-        sendSMS(user.phoneNumber, 'Your device is in danger');
-
-        logger.info(
-          '[DeviceService][handleReceivedLocation] Make call and send sms to ' + user.phoneNumber,
-        );
-
-        deviceData.properties.lastCall = new Date();
-        deviceData.properties.lastSms = new Date();
-
-        /**
-         * @type {import ('firebase-admin').messaging.Messaging}
-         */
-        const fcm = Container.get(DI_KEYS.FB_FCM);
-        fcm.sendToDevice(user.fcmTokens, {
+      const action = this.getActionData(device.status);
+      if (action.actions.includes('pushNotification')) {
+        await fcm.sendToDevice(user.fcmTokens, {
           notification: {
-            title: input.status === DeviceStatus.SOS ? 'SOS' : 'Lost vehicle detected',
-            body:
-              input.status === DeviceStatus.SOS
-                ? 'The vehicle is in dangerous!!'
-                : 'Your vehicle is lost',
+            title: action.title,
+            body: action.content,
           },
         });
+        await userNotificationService.createUserNotification(device.userId, {
+          title: action.title,
+          content: action.content,
+          type: device.status,
+          userId: device.userId,
+          deviceId: device.id,
+          createdAt: new Date(),
+        });
+        logger.info(
+          '[DeviceService][handleReceivedLocation] Send push notification to ' + user.phoneNumber,
+        );
+      }
+      if (action.actions.includes('sendSms')) {
+        const needToSendSms = isAfter(
+          sub(new Date(), {
+            minutes: 5,
+          }),
+          device.properties.lastSendSmsTime.toDate(),
+        );
+        if (needToSendSms) {
+          sendSMS(user.sosNumbers?.[0] || user.phoneNumber, action.content);
+          device.properties.lastSendSmsTime = new Date();
+          logger.info('[DeviceService][handleReceivedLocation] Send sms to ' + user.phoneNumber);
+        }
+      }
+      if (action.actions.includes('call')) {
+        const needToCall = isAfter(
+          sub(new Date(), {
+            minutes: 2,
+          }),
+          device.properties.lastCall.toDate(),
+        );
+        if (needToCall) {
+          makeCall(user.sosNumbers?.[0] || user.phoneNumber);
+          device.properties.lastCallTime = new Date();
+          logger.info('[DeviceService][handleReceivedLocation] Make call to ' + user.phoneNumber);
+        }
       }
 
       await this.deviceCollection.doc(input.deviceId).update({
-        ...deviceData,
+        ...device,
       });
 
       return {
-        id: device.id,
-        ...deviceData,
+        id: doc.id,
+        ...device,
       };
     } catch (error) {
       logger.error('[DeviceService][handleReceivedLocation] error', error);

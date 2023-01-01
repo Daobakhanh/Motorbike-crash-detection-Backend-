@@ -1,6 +1,5 @@
 const { credential } = require('firebase-admin');
 const admin = require('firebase-admin');
-const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { getAuth } = require('firebase-admin/auth');
@@ -11,14 +10,14 @@ const { DI_KEYS } = require('../../commons/constants');
 const logger = require('../winston');
 
 module.exports = function firebaseLoader() {
-  const app = initializeApp({
+  const app = admin.initializeApp({
     credential: credential.cert(serviceAccount),
     storageBucket: 'gs://motorbike-crash-detection.appspot.com',
   });
   const firestore = getFirestore();
   const storage = getStorage();
   const auth = getAuth();
-  const fcm = admin.messaging();
+  const fcm = admin.messaging(app);
 
   Container.set(DI_KEYS.FB_APP, app);
   Container.set(DI_KEYS.FB_DB, firestore);

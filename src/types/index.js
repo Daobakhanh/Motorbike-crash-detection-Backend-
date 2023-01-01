@@ -14,7 +14,7 @@
  */
 
 /**
- * @typedef {Object} Notification
+ * @typedef {Object} UserNotification
  * @property {string} id
  * @property {string} title
  * @property {string} content
@@ -31,6 +31,20 @@
  */
 
 /**
+ * @typedef {Object} DeviceProperties
+ * @property {Date} lastCallTime
+ * @property {Date} lastSmsTime
+ * @property {string} lastNotifyTime
+ */
+
+/**
+ * @typedef {Object} DeviceLocation
+ * @property {number} latitude
+ * @property {number} longitude
+ * @property {Date} createdAt
+ */
+
+/**
  * @typedef {Object} Device
  * @property {string} id
  * @property {string} name
@@ -39,6 +53,8 @@
  * @property {Vehicle} vehicle
  * @property {DeviceConfig} config
  * @property {DeviceStatus} status
+ * @property {DeviceProperties} properties
+ * @property {DeviceLocation[]} locations
  * @property {Date} createdAt
  */
 
