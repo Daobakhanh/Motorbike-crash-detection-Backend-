@@ -18,6 +18,10 @@ mainApi.use('/app', require('../../modules/app/app.controller'));
 mainApi.use('/auth', require('../../modules/auth/auth.controller'));
 mainApi.use('/users', require('../../modules/users/user.controller'));
 mainApi.use('/devices', require('../../modules/devices/device.controller'));
+mainApi.use(
+  '/user-notifications',
+  require('../../modules/user-notifications/user-notification.controller'),
+);
 
 app.use('/api', mainApi);
 

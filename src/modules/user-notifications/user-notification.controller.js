@@ -16,14 +16,17 @@ userNotificationController.get('/', authMiddleware, async (req, res, next) => {
   }
 });
 
-userNotificationController.put('/read', authMiddleware, async (req, res, next) => {
+userNotificationController.put('/read/:id', authMiddleware, async (req, res, next) => {
   try {
     const userNotificationService = new UserNotificationService();
 
-    const result = await userNotificationService.updateIsReadUserNotification(
-      req.user.id,
-      req.body.isRead,
-    );
+    const { id } = req.params;
+    const isValidId = await userNotificationService.checkUserNotification(req.user.id, id);
+    if (!isValidId) {
+      return res.status(404).json(apiResult('User notification not found'));
+    }
+
+    const result = await userNotificationService.updateIsReadUserNotification(id, req.body.isRead);
 
     return res.json(apiResult('Update read status of user notification successfully', result));
   } catch (error) {

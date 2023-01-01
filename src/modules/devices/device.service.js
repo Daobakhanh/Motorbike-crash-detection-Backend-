@@ -243,14 +243,15 @@ class DeviceService {
       const action = this.getActionData(device.status);
       const phoneNumber = user.sosNumbers?.[0] || user.phoneNumber;
       if (action.actions.includes('pushNotification')) {
-        const needToPushNotification = isAfter(
-          sub(new Date(), {
-            minutes: 5,
-          }),
-          device.properties.lastPushNotificationTime.toDate(),
-        );
+        const needToPushNotification =
+          isAfter(
+            sub(new Date(), {
+              minutes: 2,
+            }),
+            device.properties.lastPushNotificationTime?.toDate(),
+          ) || !device.properties.lastPushNotificationTime;
 
-        if (!needToPushNotification) {
+        if (needToPushNotification) {
           await fcm.sendToDevice(user.fcmTokens, {
             notification: {
               title: action.title,
@@ -272,12 +273,13 @@ class DeviceService {
         }
       }
       if (action.actions.includes('sendSms')) {
-        const needToSendSms = isAfter(
-          sub(new Date(), {
-            minutes: 5,
-          }),
-          device.properties.lastSendSmsTime.toDate(),
-        );
+        const needToSendSms =
+          isAfter(
+            sub(new Date(), {
+              minutes: 5,
+            }),
+            device.properties.lastSendSmsTime?.toDate(),
+          ) || !device.properties.lastSendSmsTime;
         if (needToSendSms) {
           sendSMS(phoneNumber);
           device.properties.lastSendSmsTime = new Date();
@@ -285,12 +287,13 @@ class DeviceService {
         }
       }
       if (action.actions.includes('makeCall')) {
-        const needToMakeCall = isAfter(
-          sub(new Date(), {
-            minutes: 2,
-          }),
-          device.properties.lastMakeCallTime.toDate(),
-        );
+        const needToMakeCall =
+          isAfter(
+            sub(new Date(), {
+              minutes: 2,
+            }),
+            device.properties.lastMakeCallTime?.toDate(),
+          ) || !device.properties.lastMakeCallTime;
         if (needToMakeCall) {
           makeCall(phoneNumber);
           device.properties.lastMakeCallTime = new Date();
