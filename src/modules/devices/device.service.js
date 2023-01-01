@@ -233,27 +233,43 @@ class DeviceService {
       device.status = input.status;
 
       if (!device.properties) {
-        device.properties = {};
+        device.properties = {
+          lastMakeCallTime: null,
+          lastSendSmsTime: null,
+          lastPushNotificationTime: null,
+        };
       }
 
       const action = this.getActionData(device.status);
       const phoneNumber = user.sosNumbers?.[0] || user.phoneNumber;
       if (action.actions.includes('pushNotification')) {
-        await fcm.sendToDevice(user.fcmTokens, {
-          notification: {
+        const needToPushNotification = isAfter(
+          sub(new Date(), {
+            minutes: 5,
+          }),
+          device.properties.lastPushNotificationTime.toDate(),
+        );
+
+        if (!needToPushNotification) {
+          await fcm.sendToDevice(user.fcmTokens, {
+            notification: {
+              title: action.title,
+              body: action.content,
+            },
+          });
+          await userNotificationService.createUserNotification(device.userId, {
             title: action.title,
-            body: action.content,
-          },
-        });
-        await userNotificationService.createUserNotification(device.userId, {
-          title: action.title,
-          content: action.content,
-          type: device.status,
-          userId: device.userId,
-          deviceId: device.id,
-          createdAt: new Date(),
-        });
-        logger.info('[DeviceService][handleReceivedLocation] Push notification to ' + phoneNumber);
+            content: action.content,
+            type: device.status,
+            userId: device.userId,
+            deviceId: device.id,
+            createdAt: new Date(),
+          });
+          device.properties.lastPushNotificationTime = new Date();
+          logger.info(
+            '[DeviceService][handleReceivedLocation] Push notification to ' + phoneNumber,
+          );
+        }
       }
       if (action.actions.includes('sendSms')) {
         const needToSendSms = isAfter(
