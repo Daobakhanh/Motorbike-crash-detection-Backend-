@@ -152,7 +152,11 @@ class DeviceService {
   getActionData(deviceStatus) {
     switch (deviceStatus) {
       case DeviceStatus.NONE:
-        return {};
+        return {
+          title: '',
+          content: '',
+          actions: [],
+        };
       case DeviceStatus.FALL:
         return {
           title: 'Warning',
