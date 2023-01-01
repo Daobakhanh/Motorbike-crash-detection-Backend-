@@ -1,4 +1,5 @@
 const { credential } = require('firebase-admin');
+const admin = require('firebase-admin');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
@@ -17,11 +18,13 @@ module.exports = function firebaseLoader() {
   const firestore = getFirestore();
   const storage = getStorage();
   const auth = getAuth();
+  const fcm = admin.messaging();
 
   Container.set(DI_KEYS.FB_APP, app);
   Container.set(DI_KEYS.FB_DB, firestore);
   Container.set(DI_KEYS.FB_STORAGE, storage);
   Container.set(DI_KEYS.FB_AUTH, auth);
+  Container.set(DI_KEYS.FB_FCM, fcm);
 
   logger.info('Firebase loaded');
 };

@@ -13,6 +13,7 @@ const DI_KEYS = {
   FB_DB: 'fbDb',
   FB_STORAGE: 'fbStorage',
   FB_AUTH: 'fbAuth',
+  FB_FCM: 'fbFcm',
 
   MQTT_CLIENT: 'mqttClient',
   SOCKETIO: 'socketio',

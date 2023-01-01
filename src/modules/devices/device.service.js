@@ -5,6 +5,7 @@ const configs = require('../../commons/configs');
 const { makeCall, sendSMS } = require('../twilio');
 const { DI_KEYS, DeviceStatus } = require('../../commons/constants');
 const logger = require('../../loaders/winston');
+const UserService = require('../users/user.service');
 
 class DeviceService {
   constructor() {
@@ -177,6 +178,12 @@ class DeviceService {
         };
       }
 
+      const userService = new UserService();
+      /**
+       * @type {User}
+       */
+      const user = await userService.getUserInfo(deviceData.userId);
+
       const needToCall = isAfter(
         sub(new Date(), {
           minutes: 2,
@@ -188,13 +195,29 @@ class DeviceService {
         deviceData.status === DeviceStatus.SOS &&
         (needToCall || !deviceData.properties?.lastCall || !deviceData.properties?.lastSms)
       ) {
-        await makeCall('+84357698570');
-        await sendSMS('+84357698570', 'SOS SOS');
+        makeCall(user.phoneNumber);
+        sendSMS(user.phoneNumber, 'Your device is in danger');
 
-        logger.info('[DeviceService][handleReceivedLocation] make call and send sms');
+        logger.info(
+          '[DeviceService][handleReceivedLocation] Make call and send sms to ' + user.phoneNumber,
+        );
 
         deviceData.properties.lastCall = new Date();
         deviceData.properties.lastSms = new Date();
+
+        /**
+         * @type {import ('firebase-admin').messaging.Messaging}
+         */
+        const fcm = Container.get(DI_KEYS.FB_FCM);
+        fcm.sendToDevice(user.fcmTokens, {
+          notification: {
+            title: input.status === DeviceStatus.SOS ? 'SOS' : 'Lost vehicle detected',
+            body:
+              input.status === DeviceStatus.SOS
+                ? 'The vehicle is in dangerous!!'
+                : 'Your vehicle is lost',
+          },
+        });
       }
 
       await this.deviceCollection.doc(input.deviceId).update({
