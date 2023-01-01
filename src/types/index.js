@@ -32,9 +32,9 @@
 
 /**
  * @typedef {Object} DeviceProperties
- * @property {Date} lastCallTime
- * @property {Date} lastSmsTime
- * @property {string} lastNotifyTime
+ * @property {Date} lastMakeCallTime
+ * @property {Date} lastSendSmsTime
+ * @property {string} lastPushNotificationTime
  */
 
 /**

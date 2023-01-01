@@ -163,7 +163,7 @@ class DeviceService {
         return {
           title: 'Warning',
           content: 'Your vehicle has crashed',
-          actions: ['pushNotification', 'sendSms', 'call'],
+          actions: ['pushNotification', 'sendSms', 'makeCall'],
         };
       case DeviceStatus.LOST1:
         return {
@@ -175,13 +175,13 @@ class DeviceService {
         return {
           title: 'Your vehicle may be lost',
           content: 'Your vehicle is 50m away from previous location',
-          actions: ['pushNotification', 'sendSms', 'call'],
+          actions: ['pushNotification', 'sendSms', 'makeCall'],
         };
       case DeviceStatus.SOS:
         return {
           title: 'SOS',
           content: 'There is an emergency situation',
-          actions: ['pushNotification', 'sendSms', 'call'],
+          actions: ['pushNotification', 'sendSms', 'makeCall'],
         };
       default:
         return {};
@@ -237,6 +237,7 @@ class DeviceService {
       }
 
       const action = this.getActionData(device.status);
+      const phoneNumber = user.sosNumbers?.[0] || user.phoneNumber;
       if (action.actions.includes('pushNotification')) {
         await fcm.sendToDevice(user.fcmTokens, {
           notification: {
@@ -252,9 +253,7 @@ class DeviceService {
           deviceId: device.id,
           createdAt: new Date(),
         });
-        logger.info(
-          '[DeviceService][handleReceivedLocation] Send push notification to ' + user.phoneNumber,
-        );
+        logger.info('[DeviceService][handleReceivedLocation] Push notification to ' + phoneNumber);
       }
       if (action.actions.includes('sendSms')) {
         const needToSendSms = isAfter(
@@ -264,22 +263,22 @@ class DeviceService {
           device.properties.lastSendSmsTime.toDate(),
         );
         if (needToSendSms) {
-          sendSMS(user.sosNumbers?.[0] || user.phoneNumber, action.content);
+          sendSMS(phoneNumber);
           device.properties.lastSendSmsTime = new Date();
-          logger.info('[DeviceService][handleReceivedLocation] Send sms to ' + user.phoneNumber);
+          logger.info('[DeviceService][handleReceivedLocation] Send sms to ' + phoneNumber);
         }
       }
-      if (action.actions.includes('call')) {
-        const needToCall = isAfter(
+      if (action.actions.includes('makeCall')) {
+        const needToMakeCall = isAfter(
           sub(new Date(), {
             minutes: 2,
           }),
-          device.properties.lastCall.toDate(),
+          device.properties.lastMakeCallTime.toDate(),
         );
-        if (needToCall) {
-          makeCall(user.sosNumbers?.[0] || user.phoneNumber);
-          device.properties.lastCallTime = new Date();
-          logger.info('[DeviceService][handleReceivedLocation] Make call to ' + user.phoneNumber);
+        if (needToMakeCall) {
+          makeCall(phoneNumber);
+          device.properties.lastMakeCallTime = new Date();
+          logger.info('[DeviceService][handleReceivedLocation] Make call to ' + phoneNumber);
         }
       }
 
