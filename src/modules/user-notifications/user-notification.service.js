@@ -83,14 +83,11 @@ class UserNotificationService {
    */
   async updateIsReadUserNotification(notificationId, isRead = true) {
     try {
-      const docRef = await this.userNotificationCollection.doc(notificationId).update({
+      await this.userNotificationCollection.doc(notificationId).update({
         isRead,
       });
 
-      const doc = await docRef.get();
-      if (!doc.exists) {
-        return null;
-      }
+      const doc = await this.userNotificationCollection.doc(notificationId).get();
 
       return { id: doc.id, ...doc.data() };
     } catch (error) {
