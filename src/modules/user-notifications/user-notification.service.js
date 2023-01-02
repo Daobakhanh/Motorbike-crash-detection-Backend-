@@ -77,19 +77,22 @@ class UserNotificationService {
   }
 
   /**
-   * @param {string} notificationId
+   * @param {string[]} notificationId
    * @param {boolean} isRead
    * @returns {Promise<UserNotification>}
    */
-  async updateIsReadUserNotification(notificationId, isRead = true) {
+  async updateIsReadUserNotifications(notificationIds, isRead = true) {
     try {
-      await this.userNotificationCollection.doc(notificationId).update({
-        isRead,
+      const batch = this.userNotificationCollection.firestore.batch();
+
+      notificationIds.forEach(notificationId => {
+        const docRef = this.userNotificationCollection.doc(notificationId);
+        batch.update(docRef, { isRead });
       });
 
-      const doc = await this.userNotificationCollection.doc(notificationId).get();
+      await batch.commit();
 
-      return { id: doc.id, ...doc.data() };
+      return true;
     } catch (error) {
       logger.error('[UserNotificationService][updateIsReadUserNotification] error', error);
     }
