@@ -85,5 +85,5 @@
  * @property {string} deviceId
  * @property {number[]} location
  * @property {DeviceStatus} status
- * @property {boolean} toggleAntiTheft
+ * @property {boolean} antiTheft
  */

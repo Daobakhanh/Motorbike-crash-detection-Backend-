@@ -216,6 +216,9 @@ class DeviceService {
        */
       const device = doc.data();
       device.id = doc.id;
+      if (!device.userId) {
+        return null;
+      }
 
       /**
        * @type {User}
@@ -233,7 +236,7 @@ class DeviceService {
       });
 
       // Update status
-      device.config.antiTheft = input.toggleAntiTheft;
+      device.config.antiTheft = input.antiTheft;
       device.status = input.status;
 
       if (!device.properties) {
@@ -338,7 +341,8 @@ class DeviceService {
         ...deviceData,
         config: {
           ...deviceData.config,
-          antiTheft: config.toggleAntiTheft || deviceData.config?.antiTheft,
+          antiTheft:
+            config.antiTheft !== undefined ? config.antiTheft : deviceData.config.antiTheft,
         },
       });
 
@@ -347,15 +351,16 @@ class DeviceService {
        */
       const mqttClient = Container.get(DI_KEYS.MQTT_CLIENT);
       const dataToSend = {};
-      if (config.needUpdateLocation !== undefined) {
-        dataToSend.needUpdateLocation = config.needUpdateLocation;
+      if (config.updateLocation !== undefined) {
+        dataToSend.updateLocation = config.updateLocation;
       }
-      if (config.toggleAntiTheft !== undefined) {
-        dataToSend.toggleAntiTheft = config.toggleAntiTheft;
+      if (config.antiTheft !== undefined) {
+        dataToSend.antiTheft = config.antiTheft;
       }
-      if (config.offWarning !== undefined) {
-        dataToSend.offWarning = config.offWarning;
+      if (config.warning !== undefined) {
+        dataToSend.warning = config.warning;
       }
+
       mqttClient.publish(`${configs.MQTT_TOPIC_PREFIX}/update`, JSON.stringify(dataToSend));
 
       return {

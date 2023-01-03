@@ -29,8 +29,9 @@ module.exports = function mqttLoader() {
       /**
        * @type {ReceivedLocationData}
        */
-      const receivedData = JSON.parse(message.toString());
 
+      // Decode base64
+      const receivedData = JSON.parse(Buffer.from(message.toString(), 'base64').toString('ascii'));
       const deviceService = new DeviceService();
       const device = await deviceService.handleReceivedLocation(receivedData);
 
