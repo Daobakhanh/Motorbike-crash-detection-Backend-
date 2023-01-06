@@ -206,7 +206,6 @@ class DeviceService {
       const userNotificationService = new UserNotificationService();
 
       const doc = await this.deviceCollection.doc(input.deviceId).get();
-
       if (!doc.exists) {
         return null;
       }
@@ -246,6 +245,16 @@ class DeviceService {
           lastPushNotificationTime: null,
         };
       }
+
+      // Emit socketio
+      /**
+       * @type {import('socket.io').Server}
+       */
+      const socketio = Container.get(DI_KEYS.SOCKETIO);
+      socketio.to(device.userId).emit('location-change', {
+        latitude: input.location[0],
+        longitude: input.location[1],
+      });
 
       const action = this.getActionData(device.status);
       const phoneNumber = user.sosNumbers?.[0] || user.phoneNumber;
@@ -329,21 +338,29 @@ class DeviceService {
    */
   async requestToDevice(deviceId, config) {
     try {
-      const device = await this.deviceCollection.doc(deviceId).get();
+      const doc = await this.deviceCollection.doc(deviceId).get();
 
-      if (!device.exists) {
+      if (!doc.exists) {
         return null;
       }
 
-      const deviceData = device.data();
+      /**
+       * @type {Device}
+       */
+      const device = {
+        id: doc.id,
+        ...doc.data(),
+      };
+
+      if (config.antiTheft !== undefined) {
+        device.config.antiTheft = config.antiTheft;
+      }
+      if (config.warning == false) {
+        device.status = 0;
+      }
 
       await this.deviceCollection.doc(deviceId).update({
-        ...deviceData,
-        config: {
-          ...deviceData.config,
-          antiTheft:
-            config.antiTheft !== undefined ? config.antiTheft : deviceData.config.antiTheft,
-        },
+        ...device,
       });
 
       /**
@@ -364,8 +381,8 @@ class DeviceService {
       mqttClient.publish(`${configs.MQTT_TOPIC_PREFIX}/update`, JSON.stringify(dataToSend));
 
       return {
-        id: device.id,
-        ...deviceData,
+        id: doc.id,
+        ...device,
       };
     } catch (error) {
       logger.error('[DeviceService][requestToDevice] error', error);
