@@ -297,7 +297,7 @@ class DeviceService {
             device.properties.lastSendSmsTime?.toDate(),
           ) || !device.properties.lastSendSmsTime;
         if (needToSendSms) {
-          sendSMS(phoneNumber);
+          // sendSMS(phoneNumber);
           device.properties.lastSendSmsTime = new Date();
           logger.info('[DeviceService][handleReceivedLocation] Send sms to ' + phoneNumber);
         }
@@ -311,7 +311,7 @@ class DeviceService {
             device.properties.lastMakeCallTime?.toDate(),
           ) || !device.properties.lastMakeCallTime;
         if (needToMakeCall) {
-          makeCall(phoneNumber);
+          // makeCall(phoneNumber);
           device.properties.lastMakeCallTime = new Date();
           logger.info('[DeviceService][handleReceivedLocation] Make call to ' + phoneNumber);
         }
@@ -367,23 +367,15 @@ class DeviceService {
        * @type {import('mqtt').Client}
        */
       const mqttClient = Container.get(DI_KEYS.MQTT_CLIENT);
-      const dataToSend = {};
-      if (config.updateLocation !== undefined) {
-        dataToSend.updateLocation = config.updateLocation;
-      }
-      if (config.antiTheft !== undefined) {
-        dataToSend.antiTheft = config.antiTheft;
-      }
-      if (config.warning !== undefined) {
-        dataToSend.warning = config.warning;
-      }
-
+      const dataToSend = {
+        deviceId,
+        updateLocation: true,
+        antiTheft: device.config.antiTheft,
+        warning: config.warning,
+      };
       mqttClient.publish(`${configs.MQTT_TOPIC_PREFIX}/update`, JSON.stringify(dataToSend));
 
-      return {
-        id: doc.id,
-        ...device,
-      };
+      return device;
     } catch (error) {
       logger.error('[DeviceService][requestToDevice] error', error);
     }
