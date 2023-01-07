@@ -28,9 +28,20 @@ const DeviceStatus = {
   SOS: 5,
 };
 
+const UserNotificationType = {
+  NONE: 0,
+  FALL: 1,
+  CRASH: 2,
+  LOST1: 3,
+  LOST2: 4,
+  SOS: 5,
+  ON_ANTI_THEFT: 6,
+  OFF_ANTI_THEFT: 7,
+};
+
 const AppRunMode = {
   DEV: 'DEV',
   PROD: 'PROD',
 };
 
-module.exports = { MESSAGES, DI_KEYS, DeviceStatus, AppRunMode };
+module.exports = { MESSAGES, DI_KEYS, UserNotificationType, DeviceStatus, AppRunMode };

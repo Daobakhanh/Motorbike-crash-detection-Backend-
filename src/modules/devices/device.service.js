@@ -3,7 +3,7 @@ const { sub, isAfter } = require('date-fns');
 
 const configs = require('../../commons/configs');
 const { makeCall, sendSMS } = require('../twilio');
-const { DI_KEYS, DeviceStatus } = require('../../commons/constants');
+const { DI_KEYS, DeviceStatus, UserNotificationType } = require('../../commons/constants');
 const logger = require('../../loaders/winston');
 const UserService = require('../users/user.service');
 const UserNotificationService = require('../user-notifications/user-notification.service');
@@ -145,18 +145,25 @@ class DeviceService {
   }
 
   /**
-   * @param {DeviceStatus} deviceStatus
-   * @returns
+   * @param {number} type
    * @private
    */
-  getActionData(deviceStatus) {
-    switch (deviceStatus) {
+  getActionData(type, offWarning = false) {
+    switch (type) {
       case DeviceStatus.NONE:
-        return {
-          title: '',
-          content: '',
-          actions: [],
-        };
+        if (offWarning) {
+          return {
+            title: 'Your vehicle stopped warning',
+            content: 'Your vehicle is safe now',
+            actions: ['pushNotification', 'sendSms'],
+          };
+        } else {
+          return {
+            title: '',
+            content: '',
+            actions: [],
+          };
+        }
       case DeviceStatus.FALL:
         return {
           title: 'Warning',
@@ -187,6 +194,18 @@ class DeviceService {
           content: 'There is an emergency situation',
           actions: ['pushNotification', 'sendSms', 'makeCall'],
         };
+      case UserNotificationType.OFF_ANTI_THEFT:
+        return {
+          title: 'Anti-theft is off',
+          content: 'Your vehicle is not protected by anti-theft',
+          actions: ['pushNotification', 'sendSms'],
+        };
+      case UserNotificationType.ON_ANTI_THEFT:
+        return {
+          title: 'Anti-theft is on',
+          content: 'Your vehicle is protected by anti-theft',
+          actions: ['pushNotification', 'sendSms'],
+        };
       default:
         return {};
     }
@@ -198,18 +217,21 @@ class DeviceService {
    */
   async handleReceivedLocation(input) {
     try {
-      const userService = new UserService();
       /**
        * @type {import ('firebase-admin').messaging.Messaging}
        */
       const fcm = Container.get(DI_KEYS.FB_FCM);
+      /**
+       * @type {import('socket.io').Server}
+       */
+      const socketio = Container.get(DI_KEYS.SOCKETIO);
+      const userService = new UserService();
       const userNotificationService = new UserNotificationService();
 
       const doc = await this.deviceCollection.doc(input.deviceId).get();
       if (!doc.exists) {
         return null;
       }
-
       /**
        * @type {Device}
        */
@@ -223,21 +245,19 @@ class DeviceService {
        * @type {User}
        */
       const user = await userService.getUserInfo(device.userId);
+      const phoneNumber = user.sosNumbers?.[0] || user.phoneNumber;
 
       // Insert location
       if (!device.locations || !Array.isArray(device.locations)) {
         device.locations = [];
       }
-      device.locations.push({
+      device.locations.unshift({
         latitude: input.location[0],
         longitude: input.location[1],
         createdAt: new Date(),
       });
 
-      // Update status
-      device.config.antiTheft = input.antiTheft;
-      device.status = input.status;
-
+      // Update properties
       if (!device.properties) {
         device.properties = {
           lastMakeCallTime: null,
@@ -246,18 +266,21 @@ class DeviceService {
         };
       }
 
-      // Emit socketio
-      /**
-       * @type {import('socket.io').Server}
-       */
-      const socketio = Container.get(DI_KEYS.SOCKETIO);
-      socketio.to(device.userId).emit('location-change', {
-        latitude: input.location[0],
-        longitude: input.location[1],
-      });
+      // Update config and status
+      const isNewStatus = device.status !== input.status;
+      const isNewConfig = device.config.antiTheft !== input.antiTheft;
+      device.config.antiTheft = input.antiTheft;
+      device.status = input.status;
 
-      const action = this.getActionData(device.status);
-      const phoneNumber = user.sosNumbers?.[0] || user.phoneNumber;
+      let actionType = UserNotificationType.NONE;
+      if (isNewStatus) {
+        actionType = input.status;
+      } else if (isNewConfig) {
+        actionType = input.antiTheft
+          ? UserNotificationType.ON_ANTI_THEFT
+          : UserNotificationType.OFF_ANTI_THEFT;
+      }
+      const action = this.getActionData(actionType);
       if (action.actions.includes('pushNotification')) {
         const needToPushNotification =
           isAfter(
@@ -265,7 +288,10 @@ class DeviceService {
               minutes: 2,
             }),
             device.properties.lastPushNotificationTime?.toDate(),
-          ) || !device.properties.lastPushNotificationTime;
+          ) ||
+          !device.properties.lastPushNotificationTime ||
+          isNewStatus ||
+          isNewConfig;
 
         if (needToPushNotification) {
           await fcm.sendToDevice(user.fcmTokens, {
@@ -284,7 +310,10 @@ class DeviceService {
           });
           device.properties.lastPushNotificationTime = new Date();
           logger.info(
-            '[DeviceService][handleReceivedLocation] Push notification to ' + phoneNumber,
+            '[DeviceService][handleReceivedLocation] Push notification to ' +
+              phoneNumber +
+              ' ' +
+              action.content,
           );
         }
       }
@@ -295,11 +324,19 @@ class DeviceService {
               minutes: 5,
             }),
             device.properties.lastSendSmsTime?.toDate(),
-          ) || !device.properties.lastSendSmsTime;
+          ) ||
+          !device.properties.lastSendSmsTime ||
+          isNewStatus ||
+          isNewConfig;
         if (needToSendSms) {
           // sendSMS(phoneNumber);
           device.properties.lastSendSmsTime = new Date();
-          logger.info('[DeviceService][handleReceivedLocation] Send sms to ' + phoneNumber);
+          logger.info(
+            '[DeviceService][handleReceivedLocation] Send sms to ' +
+              phoneNumber +
+              ' ' +
+              action.content,
+          );
         }
       }
       if (action.actions.includes('makeCall')) {
@@ -309,13 +346,18 @@ class DeviceService {
               minutes: 2,
             }),
             device.properties.lastMakeCallTime?.toDate(),
-          ) || !device.properties.lastMakeCallTime;
+          ) ||
+          !device.properties.lastMakeCallTime ||
+          isNewStatus;
         if (needToMakeCall) {
           // makeCall(phoneNumber);
           device.properties.lastMakeCallTime = new Date();
           logger.info('[DeviceService][handleReceivedLocation] Make call to ' + phoneNumber);
         }
       }
+
+      // Emit socketio to client in room
+      socketio.to(device.userId).emit('location-change', device);
 
       await this.deviceCollection.doc(input.deviceId).update({
         ...device,
