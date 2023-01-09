@@ -1,4 +1,5 @@
 const { default: Container } = require('typedi');
+const { Timestamp } = require('@google-cloud/firestore');
 
 require('../../types');
 const { DI_KEYS } = require('../../commons/constants');
@@ -41,7 +42,7 @@ class UserNotificationService {
         ...data,
         userId,
         isRead: false,
-        createdAt: new Date(),
+        createdAt: Timestamp.fromDate(new Date()),
       });
 
       const doc = await docRef.get();

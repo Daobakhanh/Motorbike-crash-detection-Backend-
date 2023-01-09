@@ -1,5 +1,6 @@
 const { default: Container } = require('typedi');
 const { sub, isAfter } = require('date-fns');
+const { Timestamp } = require('@google-cloud/firestore');
 
 const configs = require('../../commons/configs');
 const { makeCall, sendSMS } = require('../twilio');
@@ -254,7 +255,7 @@ class DeviceService {
       device.locations.unshift({
         latitude: input.location[0],
         longitude: input.location[1],
-        createdAt: new Date(),
+        createdAt: Timestamp.fromDate(new Date()),
       });
 
       // Update properties
@@ -306,7 +307,7 @@ class DeviceService {
             type: device.status,
             userId: device.userId,
             deviceId: device.id,
-            createdAt: new Date(),
+            createdAt: Timestamp.fromDate(new Date()),
           });
           device.properties.lastPushNotificationTime = new Date();
           logger.info(
@@ -332,10 +333,7 @@ class DeviceService {
           // sendSMS(phoneNumber);
           device.properties.lastSendSmsTime = new Date();
           logger.info(
-            '[DeviceService][handleReceivedLocation] Send sms to ' +
-              phoneNumber +
-              ' ' +
-              action.content,
+            '[DeviceService][handleReceivedLocation] Send sms to ' + user.id + ' ' + action.content,
           );
         }
       }
