@@ -284,15 +284,13 @@ class DeviceService {
       const action = this.getActionData(actionType);
       if (action.actions.includes('pushNotification')) {
         const needToPushNotification =
-          isAfter(
-            sub(new Date(), {
-              minutes: 2,
-            }),
-            device.properties.lastPushNotificationTime?.toDate(),
-          ) ||
-          !device.properties.lastPushNotificationTime ||
-          isNewStatus ||
-          isNewConfig;
+          // isAfter(
+          //   sub(new Date(), {
+          //     minutes: 2,
+          //   }),
+          //   device.properties.lastPushNotificationTime?.toDate(),
+          // ) ||
+          !device.properties.lastPushNotificationTime || isNewStatus || isNewConfig;
 
         if (needToPushNotification) {
           await fcm.sendToDevice(user.fcmTokens, {
@@ -312,7 +310,7 @@ class DeviceService {
           device.properties.lastPushNotificationTime = new Date();
           logger.info(
             '[DeviceService][handleReceivedLocation] Push notification to ' +
-              phoneNumber +
+              user.id +
               ' ' +
               action.content,
           );
@@ -330,10 +328,13 @@ class DeviceService {
           isNewStatus ||
           isNewConfig;
         if (needToSendSms) {
-          // sendSMS(phoneNumber);
+          await sendSMS(phoneNumber, action.content);
           device.properties.lastSendSmsTime = new Date();
           logger.info(
-            '[DeviceService][handleReceivedLocation] Send sms to ' + user.id + ' ' + action.content,
+            '[DeviceService][handleReceivedLocation] Send sms to ' +
+              phoneNumber +
+              ' ' +
+              action.content,
           );
         }
       }
