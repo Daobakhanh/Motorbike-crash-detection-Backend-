@@ -12,7 +12,8 @@ const logger = require('../winston');
 module.exports = function firebaseLoader() {
   const app = admin.initializeApp({
     credential: credential.cert(serviceAccount),
-    storageBucket: 'gs://motorbike-crash-detection.appspot.com',
+
+    storageBucket: `gs://${serviceAccount.project_id}.appspot.com`,
   });
   const firestore = getFirestore();
   const storage = getStorage();

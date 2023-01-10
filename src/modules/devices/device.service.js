@@ -328,7 +328,7 @@ class DeviceService {
           isNewStatus ||
           isNewConfig;
         if (needToSendSms) {
-          await sendSMS(phoneNumber, action.content);
+          // sendSMS(phoneNumber, action.content);
           device.properties.lastSendSmsTime = new Date();
           logger.info(
             '[DeviceService][handleReceivedLocation] Send sms to ' +
