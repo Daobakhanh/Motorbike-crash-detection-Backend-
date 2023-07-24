@@ -112,6 +112,8 @@ class DeviceService {
       delete data?.id;
       delete data?.verificationCode;
       delete data?.createdAt;
+      delete data?.battery;
+      delete data?.isConnected;
 
       await this.deviceCollection.doc(deviceId).update(data);
 
@@ -154,7 +156,7 @@ class DeviceService {
       case DeviceStatus.NONE:
         if (offWarning) {
           return {
-            title: 'Your vehicle stopped warning',
+            title: 'Stopped warning',
             content: 'Your vehicle is safe now',
             actions: ['pushNotification', 'sendSms'],
           };
@@ -165,12 +167,12 @@ class DeviceService {
             actions: [],
           };
         }
-      case DeviceStatus.FALL:
-        return {
-          title: 'Warning',
-          content: 'Your vehicle has fallen',
-          actions: ['pushNotification', 'sendSms'],
-        };
+      // case DeviceStatus.FALL:
+      //   return {
+      //     title: 'Warning',
+      //     content: 'Your vehicle has fallen',
+      //     actions: ['pushNotification', 'sendSms'],
+      //   };
       case DeviceStatus.CRASH:
         return {
           title: 'Warning',
@@ -179,13 +181,13 @@ class DeviceService {
         };
       case DeviceStatus.LOST1:
         return {
-          title: 'Your vehicle may be lost',
+          title: 'May be lost',
           content: 'Your vehicle is 10m away from previous location',
           actions: ['pushNotification', 'sendSms'],
         };
       case DeviceStatus.LOST2:
         return {
-          title: 'Your vehicle may be lost',
+          title: 'May be lost',
           content: 'Your vehicle is 50m away from previous location',
           actions: ['pushNotification', 'sendSms', 'makeCall'],
         };
@@ -197,13 +199,13 @@ class DeviceService {
         };
       case UserNotificationType.OFF_ANTI_THEFT:
         return {
-          title: 'Anti-theft is off',
+          title: 'Off Anti-theft',
           content: 'Your vehicle is not protected by anti-theft',
           actions: ['pushNotification', 'sendSms'],
         };
       case UserNotificationType.ON_ANTI_THEFT:
         return {
-          title: 'Anti-theft is on',
+          title: 'On Anti-theft',
           content: 'Your vehicle is protected by anti-theft',
           actions: ['pushNotification', 'sendSms'],
         };
@@ -360,6 +362,8 @@ class DeviceService {
 
       await this.deviceCollection.doc(input.deviceId).update({
         ...device,
+        battery: input.battery,
+        isConnected: input.isConnected,
       });
 
       return {
@@ -393,12 +397,15 @@ class DeviceService {
         ...doc.data(),
       };
 
-      if (config.antiTheft !== undefined) {
-        device.config.antiTheft = config.antiTheft;
-      }
       if (config.warning == false) {
         device.status = 0;
       }
+      delete config.warning;
+
+      device.config = {
+        ...device.config,
+        ...config,
+      };
 
       await this.deviceCollection.doc(deviceId).update({
         ...device,
@@ -419,6 +426,40 @@ class DeviceService {
       return device;
     } catch (error) {
       logger.error('[DeviceService][requestToDevice] error', error);
+    }
+  }
+
+  async requestSetRootToDevice(deviceId, root) {
+    try {
+      const doc = await this.deviceCollection.doc(deviceId).get();
+
+      if (!doc.exists) {
+        return null;
+      }
+
+      /**
+       * @type {Device}
+       */
+      const device = {
+        id: doc.id,
+        ...doc.data(),
+      };
+
+      /**
+       * @type {import('mqtt').Client}
+       */
+      const mqttClient = Container.get(DI_KEYS.MQTT_CLIENT);
+      const dataToSend = {
+        deviceId,
+        updateLocation: true,
+        antiTheft: device.config.antiTheft,
+        warning: device.config.warning,
+      };
+      mqttClient.publish(`${configs.MQTT_TOPIC_PREFIX}/update`, JSON.stringify(dataToSend));
+
+      return device;
+    } catch (error) {
+      logger.error('[DeviceService][requestSetRootToDevice] error', error);
     }
   }
 }

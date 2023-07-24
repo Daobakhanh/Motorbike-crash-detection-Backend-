@@ -86,4 +86,6 @@
  * @property {number[]} location
  * @property {DeviceStatus} status
  * @property {boolean} antiTheft
+ * @property {number} battery
+ * @property {boolean} isConnected
  */

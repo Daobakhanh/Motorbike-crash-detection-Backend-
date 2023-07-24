@@ -25,12 +25,26 @@ module.exports = function mqttLoader() {
 
   mqttClient.on('message', async function (topic, message) {
     if (topic === `${configs.MQTT_TOPIC_PREFIX}/location`) {
+      // Decode base64
+      const rawData = message.toString();
+
       /**
        * @type {ReceivedLocationData}
        */
+      let receivedData = {};
 
-      // Decode base64
-      const receivedData = JSON.parse(Buffer.from(message.toString(), 'base64').toString('ascii'));
+      // Check if raw data is JSON or is Base64
+      try {
+        if (rawData.startsWith('{')) {
+          receivedData = JSON.parse(rawData);
+        } else {
+          receivedData = JSON.parse(Buffer.from(message.toString(), 'base64').toString('ascii'));
+        }
+      } catch (error) {
+        logger.error('MQTT message error', error);
+        return;
+      }
+
       const deviceService = new DeviceService();
       await deviceService.handleReceivedLocation(receivedData);
     }

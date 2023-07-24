@@ -72,4 +72,15 @@ deviceController.post('/request/:deviceId', async (req, res, next) => {
   }
 });
 
+deviceController.post('/request-set-root/:deviceId', async (req, res, next) => {
+  try {
+    const deviceService = new DeviceService();
+    const result = await deviceService.requestSetRootToDevice(req.params.deviceId, req.body);
+
+    return res.json(apiResult('Request to device successfully', result));
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = deviceController;
