@@ -26,4 +26,7 @@ module.exports = {
   JWT_SECRET_KEY: process.env.JWT_SECRET_KEY,
   JWT_ALGORITHM: process.env.JWT_ALGORITHM || 'HS256',
   JWT_EXPIRATION_TIME: process.env.JWT_EXPIRES_IN || '30d',
+
+  // Business
+  CHECK_DEVICE_INTERVAL: process.env.CHECK_DEVICE_INTERVAL || 5, // minutes
 };

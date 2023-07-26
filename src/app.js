@@ -6,6 +6,7 @@ const mqttLoader = require('./loaders/mqtt');
 const firebaseLoader = require('./loaders/firebase');
 const socketIOLoader = require('./loaders/socketio');
 const logger = require('./loaders/winston');
+const cronJobsLoader = require('./loaders/cronjob');
 
 const server = http.createServer(app);
 
@@ -15,6 +16,7 @@ async function bootstrap() {
   try {
     firebaseLoader();
     mqttLoader();
+    cronJobsLoader();
 
     server.listen(PORT, () => {
       logger.info(`Server is running on port ${PORT}`);
