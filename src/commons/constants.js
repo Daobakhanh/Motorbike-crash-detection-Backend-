@@ -37,6 +37,9 @@ const UserNotificationType = {
   SOS: 5,
   ON_ANTI_THEFT: 6,
   OFF_ANTI_THEFT: 7,
+  CHARGE_NOT_CONNECTED: 8,
+  LOW_BATTERY: 9,
+  DISCONNECTED: 10,
 };
 
 const AppRunMode = {

@@ -53,6 +53,8 @@
  * @property {Vehicle} vehicle
  * @property {DeviceConfig} config
  * @property {DeviceStatus} status
+ * @property {boolean} isConnected
+ * @property {number} battery
  * @property {DeviceProperties} properties
  * @property {DeviceLocation[]} locations
  * @property {Date} createdAt
@@ -87,5 +89,5 @@
  * @property {DeviceStatus} status
  * @property {boolean} antiTheft
  * @property {number} battery
- * @property {boolean} isConnected
+ * @property {boolean} isCharging
  */

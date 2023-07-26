@@ -113,7 +113,7 @@ class DeviceService {
       delete data?.verificationCode;
       delete data?.createdAt;
       delete data?.battery;
-      delete data?.isConnected;
+      delete data?.isCharging;
 
       await this.deviceCollection.doc(deviceId).update(data);
 
@@ -209,6 +209,19 @@ class DeviceService {
           content: 'Your vehicle is protected by anti-theft',
           actions: ['pushNotification', 'sendSms'],
         };
+      case UserNotificationType.LOW_BATTERY:
+        return {
+          title: 'Low Battery',
+          content: 'Your device is about run out of battery',
+          actions: ['pushNotification', 'sendSms'],
+        };
+      case UserNotificationType.DISCONNECTED:
+        return {
+          title: 'Disconnected',
+          content: 'Your device is disconnected',
+          actions: ['pushNotification', 'sendSms'],
+        };
+
       default:
         return {};
     }
@@ -243,6 +256,7 @@ class DeviceService {
       if (!device.userId) {
         return null;
       }
+      device.isConnected = true;
 
       /**
        * @type {User}
@@ -282,7 +296,10 @@ class DeviceService {
         actionType = input.antiTheft
           ? UserNotificationType.ON_ANTI_THEFT
           : UserNotificationType.OFF_ANTI_THEFT;
+      } else if (device.battery > 20 && input.battery <= 20) {
+        action = UserNotificationType.LOW_BATTERY;
       }
+
       const action = this.getActionData(actionType);
       if (action.actions.includes('pushNotification')) {
         const needToPushNotification =
@@ -363,7 +380,7 @@ class DeviceService {
       await this.deviceCollection.doc(input.deviceId).update({
         ...device,
         battery: input.battery,
-        isConnected: input.isConnected,
+        isCharging: input.isCharging,
       });
 
       return {
