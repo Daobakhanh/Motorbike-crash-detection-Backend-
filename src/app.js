@@ -14,6 +14,8 @@ const PORT = configs.PORT;
 
 async function bootstrap() {
   try {
+    logger.info('RUN MODE: ', configs.APP_RUN_MODE);
+
     firebaseLoader();
     mqttLoader();
     cronJobsLoader();

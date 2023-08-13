@@ -334,7 +334,7 @@ class DeviceService {
           isNewStatus ||
           isNewConfig;
         if (needToSendSms) {
-          // sendSMS(phoneNumber, action.content);
+          configs.TWILIO_ENABLED && sendSMS(phoneNumber, action.content);
           device.properties.lastSendSmsTime = new Date();
           logger.info(
             '[DeviceService][handleAction] Send sms to ' + phoneNumber + ' ' + action.content,
@@ -352,7 +352,7 @@ class DeviceService {
           !device.properties.lastMakeCallTime ||
           isNewStatus;
         if (needToMakeCall) {
-          // makeCall(phoneNumber);
+          configs.TWILIO_ENABLED && makeCall(phoneNumber);
           device.properties.lastMakeCallTime = new Date();
           logger.info('[DeviceService][handleAction] Make call to ' + phoneNumber);
         }

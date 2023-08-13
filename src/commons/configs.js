@@ -18,6 +18,7 @@ module.exports = {
   MQTT_TOPIC_PREFIX: process.env.MQTT_TOPIC_PREFIX || '',
 
   // Twilio
+  TWILIO_ENABLED: process.env.TWILIO_ENABLED || false,
   TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
   TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
   TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
